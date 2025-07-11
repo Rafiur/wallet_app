@@ -15,4 +15,5 @@ type Account struct {
 
 	CreatedAt time.Time `bun:"created_at,default:current_timestamp"`
 	UpdatedAt time.Time `bun:"updated_at,default:current_timestamp"`
+	DeletedAt time.Time `bun:"deleted_at,notnull,default:current_timestamp"`
 }
