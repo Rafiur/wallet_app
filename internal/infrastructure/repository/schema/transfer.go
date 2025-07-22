@@ -19,6 +19,7 @@ type Transfer struct {
 	Status        string    `bun:"status" json:"status"`
 
 	// Optional: You can preload account data if needed
-	FromAccount *Account `bun:"rel:join,join:from_account_id=id" json:"from_account,omitempty"`
-	ToAccount   *Account `bun:"rel:join,join:to_account_id=id" json:"to_account,omitempty"`
+	FromAccount *Account  `bun:"rel:join,join:from_account_id=id" json:"from_account,omitempty"`
+	ToAccount   *Account  `bun:"rel:join,join:to_account_id=id" json:"to_account,omitempty"`
+	DeletedAt   time.Time `bun:",soft_delete,nullzero" json:"deleted_at,omitempty"`
 }
