@@ -17,4 +17,5 @@ type Transaction struct {
 	Note              string    `bun:"note" json:"note"`
 	Tags              []string  `bun:"tags,type:text[]" json:"tags"`
 	TransactionType   string    `bun:"transaction_type" json:"transaction_type"`
+	DeletedAt         time.Time `bun:",soft_delete,nullzero" json:"deleted_at,omitempty"`
 }
