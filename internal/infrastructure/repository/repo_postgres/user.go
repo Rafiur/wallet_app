@@ -45,7 +45,7 @@ func (repo *UserRepo) List(ctx context.Context, filter *entity.FilterUserListReq
 	var data []*schema.User
 	query := repo.db.NewSelect().
 		Model(&data).
-		Where("deleted-at IS NULL")
+		Where("deleted_at IS NULL")
 	if filter.ID != "" {
 		query = query.Where("id = ?", filter.ID)
 	}

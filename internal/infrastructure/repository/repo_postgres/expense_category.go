@@ -70,7 +70,7 @@ func (repo *ExpenseCategoryRepo) Update(ctx context.Context, req *schema.Expense
 	if req.Name != "" && req.Name != existing.Name {
 		existing.Name = req.Name
 	}
-	if req.ParentCategoryID != "" && req.ParentCategoryID != existing.ParentCategoryID {
+	if req.ParentCategoryID != nil && (existing.ParentCategoryID == nil || *req.ParentCategoryID != *existing.ParentCategoryID) {
 		existing.ParentCategoryID = req.ParentCategoryID
 	}
 
