@@ -18,7 +18,7 @@ func NewExpenseCategory(db *bun.DB) *ExpenseCategoryRepo {
 func (repo *ExpenseCategoryRepo) Create(ctx context.Context, req *schema.ExpenseCategory) (*schema.ExpenseCategory, error) {
 	_, err := repo.db.NewInsert().
 		Model(req).
-		//ExcludeColumn("deleted_at").
+		ExcludeColumn("deleted_at").
 		Returning("*").
 		Exec(ctx)
 
@@ -43,8 +43,7 @@ func (repo *ExpenseCategoryRepo) GetByID(ctx context.Context, id string) (*schem
 func (repo *ExpenseCategoryRepo) List(ctx context.Context, filter *entity.FilterExpenseCategoryListRequest) ([]*schema.ExpenseCategory, error) {
 	var data []*schema.ExpenseCategory
 	query := repo.db.NewSelect().
-		Model(&data)
-	//Where("deleted_at IS NULL")
+		Model(&data).Where("deleted_at IS NULL")
 	if filter.ID != "" {
 		query = query.Where("id = ?", filter.ID)
 	}
@@ -86,6 +85,20 @@ func (repo *ExpenseCategoryRepo) Update(ctx context.Context, req *schema.Expense
 	return req, nil
 }
 
-//func (repo *ExpenseCategory) Delete(ctx context.Context, req *schema.ExpenseCategory) (*schema.ExpenseCategory, error) {
-//
-//}
+func (repo *ExpenseCategoryRepo) Delete(ctx context.Context, req *entity.CommonDeleteReq) error {
+
+	query := repo.db.NewUpdate().
+		Model((*schema.ExpenseCategory)(nil)).
+		Set("deleted_at = NOW()")
+
+	if len(req.IDs) > 0 {
+		query = query.Where("id IN (?)", bun.In(req.IDs))
+	}
+	if req.ID != "" {
+		query = query.Where("id = ?", req.ID)
+	}
+
+	_, err := query.Exec(ctx)
+
+	return err
+}

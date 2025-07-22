@@ -32,3 +32,7 @@ func (svc *ExpenseCategoryService) GetAll(ctx context.Context, filter *entity.Fi
 func (svc *ExpenseCategoryService) Update(ctx context.Context, req *schema.ExpenseCategory) (*schema.ExpenseCategory, error) {
 	return svc.ExpenseCategoryRepo.Update(ctx, req)
 }
+
+func (svc *ExpenseCategoryService) Delete(ctx context.Context, req *entity.CommonDeleteReq) error {
+	return svc.ExpenseCategoryRepo.Delete(ctx, req)
+}

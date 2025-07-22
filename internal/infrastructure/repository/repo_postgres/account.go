@@ -111,7 +111,7 @@ func (repo *AccountRepo) Delete(ctx context.Context, req *entity.CommonDeleteReq
 	if len(req.IDs) > 0 {
 		query = query.Where("id IN (?)", bun.In(req.IDs))
 	} else {
-		query.Where("id = ?", req.ID)
+		query = query.Where("id = ?", req.ID)
 	}
 	_, err := query.Exec(ctx)
 	if err != nil {

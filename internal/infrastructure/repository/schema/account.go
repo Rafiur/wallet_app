@@ -13,7 +13,7 @@ type Account struct {
 	Balance       float32 `bun:"balance" json:"balance"`
 	Currency      string  `bun:"currency" json:"currency"`
 
-	CreatedAt time.Time `bun:"created_at,default:current_timestamp"`
-	UpdatedAt time.Time `bun:"updated_at,default:current_timestamp"`
-	DeletedAt time.Time `bun:"deleted_at,notnull,default:current_timestamp"`
+	CreatedAt time.Time  `bun:"created_at,default:current_timestamp"`
+	UpdatedAt time.Time  `bun:"updated_at,default:current_timestamp"`
+	DeletedAt *time.Time `bun:"deleted_at,default:current_timestamp"`
 }

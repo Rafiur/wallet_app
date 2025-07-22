@@ -11,4 +11,5 @@ type ExpenseCategoryRepoInterface interface {
 	GetByID(ctx context.Context, id string) (*schema.ExpenseCategory, error)
 	List(ctx context.Context, filter *entity.FilterExpenseCategoryListRequest) ([]*schema.ExpenseCategory, error)
 	Update(ctx context.Context, req *schema.ExpenseCategory) (*schema.ExpenseCategory, error)
+	Delete(ctx context.Context, req *entity.CommonDeleteReq) error
 }
