@@ -11,3 +11,8 @@ type FilterExpenseCategoryListRequest struct {
 	Name             string `json:"name"`
 	ParentCategoryID string `json:"parent_category_id"`
 }
+
+type FilterUserListRequest struct {
+	ID       string `json:"id"`
+	FullName string `json:"full_name"`
+}
