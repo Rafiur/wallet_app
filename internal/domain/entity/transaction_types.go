@@ -53,7 +53,7 @@ var TransactionTypes = []TransactionTypeMeta{
 //router.GET("/api/v1/transactions/types", handler.GetTransactionTypes)
 
 //📦 Expose it via API (you’ve already done this for strings)
-//handler/transaction.go
+//handler/transactions.go
 //func GetTransactionTypes(c *gin.Context) {
 //	c.JSON(http.StatusOK, gin.H{
 //		"types": entity.TransactionTypes,
