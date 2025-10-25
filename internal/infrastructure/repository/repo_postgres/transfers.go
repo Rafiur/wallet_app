@@ -52,8 +52,8 @@ func (repo *TransferRepo) List(ctx context.Context, filter *entity.FilterTransfe
 	var data []*schema.Transfer
 	query := repo.db.NewSelect().Model(&data)
 
-	if filter.ID != "" {
-		query = query.Where("id = ?", filter.ID)
+	if len(filter.IDs) > 0 {
+		query = query.Where("id IN (?)", bun.In(filter.IDs))
 	}
 	if filter.FromAccountID != "" {
 		query = query.Where("from_account_id = ?", filter.FromAccountID)

@@ -2,6 +2,7 @@ package repo_postgres
 
 import (
 	"context"
+	"github.com/Rafiur/wallet_app/utils"
 
 	"github.com/Rafiur/wallet_app/internal/domain/entity"
 	"github.com/Rafiur/wallet_app/internal/infrastructure/repository/schema"
@@ -53,8 +54,8 @@ func (repo *TransactionRepo) List(ctx context.Context, filter *entity.FilterTran
 
 	query := repo.db.NewSelect().Model(&data).Where("deleted_at IS NULL")
 
-	if filter.ID != "" {
-		query = query.Where("id = ?", filter.ID)
+	if len(filter.IDs) > 0 {
+		query = query.Where("id IN (?)", bun.In(filter.IDs))
 	}
 	if filter.UserID != "" {
 		query = query.Where("user_id = ?", filter.UserID)
@@ -107,7 +108,7 @@ func (repo *TransactionRepo) Update(ctx context.Context, req *schema.Transaction
 	if req.AccountID != "" && req.AccountID != existing.AccountID {
 		existing.AccountID = req.AccountID
 	}
-	if req.ExpenseCategoryID != "" && req.ExpenseCategoryID != existing.ExpenseCategoryID {
+	if req.ExpenseCategoryID != nil && utils.Val(req.ExpenseCategoryID) != utils.Val(existing.ExpenseCategoryID) {
 		existing.ExpenseCategoryID = req.ExpenseCategoryID
 	}
 	if req.Note != "" && req.Note != existing.Note {

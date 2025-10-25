@@ -20,7 +20,7 @@ type FilterUserListRequest struct {
 }
 
 type FilterTransactionListRequest struct {
-	ID                string
+	IDs               []string
 	AccountID         string
 	UserID            string
 	ExpenseCategoryID string
@@ -36,7 +36,7 @@ type FilterTransactionListRequest struct {
 }
 
 type FilterTransferListRequest struct {
-	ID            string    // filter by transfer ID
+	IDs           []string  // filter by transfer ID
 	FromAccountID string    // filter by source account
 	ToAccountID   string    // filter by destination account
 	MinAmount     float64   // filter transfers with amount >= MinAmount
