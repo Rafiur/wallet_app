@@ -1,4 +1,4 @@
-package usecase
+package service
 
 import (
 	"context"
@@ -39,14 +39,14 @@ func (svc *SessionService) GetByRefreshToken(ctx context.Context, refreshToken s
 
 func (svc *SessionService) Delete(ctx context.Context, id string) error {
 	if id == "" {
-		return nil, errors.New("id is required")
+		return errors.New("id is required")
 	}
 	return svc.SessionRepoInterface.Delete(ctx, id)
 }
 
 func (svc *SessionService) DeleteByUserID(ctx context.Context, userID string) error {
 	if userID == "" {
-		return nil, errors.New("user_id is required")
+		return errors.New("user_id is required")
 	}
 	return svc.SessionRepoInterface.DeleteByUserID(ctx, userID)
 }
