@@ -3,16 +3,16 @@ package main
 import (
 	"fmt"
 	"github.com/Rafiur/wallet_app/internal/config"
+	"github.com/Rafiur/wallet_app/internal/config/database/postgres"
 	"github.com/Rafiur/wallet_app/internal/handler"
 	"github.com/Rafiur/wallet_app/internal/infrastructure/repository/repo_postgres"
+	"github.com/Rafiur/wallet_app/internal/router"
 	"github.com/Rafiur/wallet_app/internal/service"
-	"github.com/Rafiur/wallet_app/utils"
-
+	"github.com/Rafiur/wallet_app/pkg/logger"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/uptrace/bun"
 	"net/http"
 )
 
@@ -31,10 +31,10 @@ func main() {
 	}
 
 	// Initialize logger
-	utils.NewApiLogger(dynamicConfig).InitLogger()
+	logger.NewApiLogger(dynamicConfig).InitLogger()
 
 	// Initialize database
-	db, err := config.NewPostgresDB()
+	db, err := postgres.NewPostgresDB()
 	if err != nil {
 		fmt.Printf("Failed to connect to database: %v\n", err)
 		return
@@ -65,25 +65,26 @@ func main() {
 	transactionRepo := repo_postgres.NewTransactionRepo(db)
 	transactionService := service.NewTransactionService(transactionRepo, accountRepo)
 	transferRepo := repo_postgres.NewTransferRepo(db)
+	transferService := service.NewTransferService(transferRepo, accountRepo)
 	userRepo := repo_postgres.NewUserRepo(db)
+	userService := service.NewUserService(userRepo)
 
 	// Initialize handler
-	mainHandler := handler.NewHandler(&handler.Handler{
-		AccountService:              accountService,
-		AccountCurrenciesService:    accountCurrenciesService,
-		BankService:                 bankService,
-		BudgetService:               budgetService,
-		CashFlowSummaryService:      cashFlowSummaryService,
-		CurrencyService:             currencyService,
-		ExpenseCategoryService:      expenseCategoryService,
-		InvestmentService:           investmentService,
-		RecurringTransactionService: recurringTransactionService,
-		SessionService:              sessionService,
-		TransactionService:          transactionService,
-		TransferService:             handler.NewTransferService(transferRepo, accountRepo),
-		UserService:                 handler.NewUserService(userRepo),
-	})
-
+	mainHandler := handler.NewHandler(
+		accountService,
+		accountCurrenciesService,
+		bankService,
+		budgetService,
+		cashFlowSummaryService,
+		currencyService,
+		expenseCategoryService,
+		investmentService,
+		recurringTransactionService,
+		sessionService,
+		transactionService,
+		transferService,
+		userService,
+	)
 	// Initialize Echo
 	e := echo.New()
 	e.Use(
@@ -104,8 +105,8 @@ func main() {
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return new(JwtClaim)
 		},
-		SigningKey:   []byte(dynamicConfig.JwtSecret),
-		ErrorHandler: middlewares.JwtErrorHandler,
+		SigningKey: []byte(dynamicConfig.JwtSecret),
+		//ErrorHandler: middlewares.JwtErrorHandler,
 	}
 	authenticate := echojwt.WithConfig(jwtConfig)
 
