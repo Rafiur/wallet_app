@@ -16,6 +16,10 @@ func Route(e *echo.Echo, authenticate echo.MiddlewareFunc, mainHandler *handler.
 		})
 	})
 
+	// Auth routes (no auth required)
+	e.POST("/api/v1/login", mainHandler.Login)
+	e.POST("/api/v1/refresh", mainHandler.RefreshToken)
+
 	api := e.Group("/api/v1")
 	api.Use(authenticate)
 
@@ -57,4 +61,61 @@ func Route(e *echo.Echo, authenticate echo.MiddlewareFunc, mainHandler *handler.
 	api.GET("/sessions/:id", mainHandler.GetSession)
 	api.DELETE("/sessions/:id", mainHandler.DeleteSession)
 	api.DELETE("/sessions", mainHandler.DeleteSession)
+
+	// Budgets
+	api.POST("/budgets", mainHandler.CreateBudget)
+	api.GET("/budgets", mainHandler.ListBudgets) // requires user_id
+	api.GET("/budgets/:id", mainHandler.GetBudget)
+	api.PUT("/budgets/:id", mainHandler.UpdateBudget)
+	api.DELETE("/budgets/:id", mainHandler.DeleteBudget)
+
+	// Currencies
+	api.POST("/currencies", mainHandler.CreateCurrency)
+	api.GET("/currencies", mainHandler.ListCurrencies)
+	api.GET("/currencies/:code", mainHandler.GetCurrency)
+	api.PUT("/currencies/:code", mainHandler.UpdateCurrency)
+	api.DELETE("/currencies/:code", mainHandler.DeleteCurrency)
+
+	// Expense Categories
+	api.POST("/expense-categories", mainHandler.CreateExpenseCategory)
+	api.GET("/expense-categories", mainHandler.ListExpenseCategories)
+	api.GET("/expense-categories/:id", mainHandler.GetExpenseCategory)
+	api.PUT("/expense-categories/:id", mainHandler.UpdateExpenseCategory)
+	api.DELETE("/expense-categories/:id", mainHandler.DeleteExpenseCategory)
+	api.DELETE("/expense-categories", mainHandler.DeleteExpenseCategory)
+
+	// Banks
+	api.POST("/banks", mainHandler.CreateBank)
+	api.GET("/banks", mainHandler.ListBanks) // requires user_id
+	api.GET("/banks/:id", mainHandler.GetBank)
+	api.PUT("/banks/:id", mainHandler.UpdateBank)
+	api.DELETE("/banks/:id", mainHandler.DeleteBank)
+
+	// Investments
+	api.POST("/investments", mainHandler.CreateInvestment)
+	api.GET("/investments", mainHandler.ListInvestments) // requires user_id
+	api.GET("/investments/:id", mainHandler.GetInvestment)
+	api.PUT("/investments/:id", mainHandler.UpdateInvestment)
+	api.DELETE("/investments/:id", mainHandler.DeleteInvestment)
+
+	// Recurring Transactions
+	api.POST("/recurring-transactions", mainHandler.CreateRecurringTransaction)
+	api.GET("/recurring-transactions", mainHandler.ListRecurringTransactions) // requires user_id
+	api.GET("/recurring-transactions/:id", mainHandler.GetRecurringTransaction)
+	api.PUT("/recurring-transactions/:id", mainHandler.UpdateRecurringTransaction)
+	api.DELETE("/recurring-transactions/:id", mainHandler.DeleteRecurringTransaction)
+
+	// Account Currencies
+	api.POST("/account-currencies", mainHandler.CreateAccountCurrency)
+	api.GET("/account-currencies", mainHandler.ListAccountCurrencies) // requires account_id
+	api.GET("/account-currencies/:id", mainHandler.GetAccountCurrency)
+	api.PUT("/account-currencies/:id", mainHandler.UpdateAccountCurrency)
+	api.DELETE("/account-currencies/:id", mainHandler.DeleteAccountCurrency)
+
+	// Cash Flow Summary
+	api.POST("/cash-flow-summaries", mainHandler.CreateCashFlowSummary)
+	api.GET("/cash-flow-summaries", mainHandler.ListCashFlowSummaries) // requires user_id and period
+	api.GET("/cash-flow-summaries/:id", mainHandler.GetCashFlowSummary)
+	api.PUT("/cash-flow-summaries/:id", mainHandler.UpdateCashFlowSummary)
+	api.DELETE("/cash-flow-summaries/:id", mainHandler.DeleteCashFlowSummary)
 }

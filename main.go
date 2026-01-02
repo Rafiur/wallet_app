@@ -2,18 +2,20 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/Rafiur/wallet_app/internal/config"
 	"github.com/Rafiur/wallet_app/internal/config/database/postgres"
 	"github.com/Rafiur/wallet_app/internal/handler"
 	"github.com/Rafiur/wallet_app/internal/infrastructure/repository/repo_postgres"
 	"github.com/Rafiur/wallet_app/internal/router"
+	"github.com/Rafiur/wallet_app/internal/security"
 	"github.com/Rafiur/wallet_app/internal/service"
 	"github.com/Rafiur/wallet_app/pkg/logger"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/labstack/echo-jwt/v4"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"net/http"
 )
 
 type JwtClaim struct {
@@ -67,7 +69,11 @@ func main() {
 	transferRepo := repo_postgres.NewTransferRepo(db)
 	transferService := service.NewTransferService(transferRepo, accountRepo)
 	userRepo := repo_postgres.NewUserRepo(db)
-	userService := service.NewUserService(userRepo)
+	passwordService := security.NewPasswordService()
+	userService := service.NewUserService(userRepo, passwordService)
+
+	// Initialize security services
+	jwtService := security.NewJWTService(dynamicConfig.JwtSecret)
 
 	// Initialize handler
 	mainHandler := handler.NewHandler(
@@ -84,6 +90,8 @@ func main() {
 		transactionService,
 		transferService,
 		userService,
+		jwtService,
+		passwordService,
 	)
 	// Initialize Echo
 	e := echo.New()

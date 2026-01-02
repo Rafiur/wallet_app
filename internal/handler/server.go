@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/Rafiur/wallet_app/internal/security"
 	"github.com/Rafiur/wallet_app/internal/service"
 )
 
@@ -18,6 +19,8 @@ type Handler struct {
 	transactionService          *service.TransactionService
 	transferService             *service.TransferService
 	userService                 *service.UserService
+	jwtService                  *security.JWTService
+	passwordService             *security.PasswordService
 }
 
 func NewHandler(
@@ -34,6 +37,8 @@ func NewHandler(
 	transactionService *service.TransactionService,
 	transferService *service.TransferService,
 	userService *service.UserService,
+	jwtService *security.JWTService,
+	passwordService *security.PasswordService,
 ) *Handler {
 	return &Handler{
 		accountService:              accountService,
@@ -49,5 +54,7 @@ func NewHandler(
 		transactionService:          transactionService,
 		transferService:             transferService,
 		userService:                 userService,
+		jwtService:                  jwtService,
+		passwordService:             passwordService,
 	}
 }

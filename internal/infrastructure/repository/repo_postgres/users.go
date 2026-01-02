@@ -2,6 +2,7 @@ package repo_postgres
 
 import (
 	"context"
+
 	"github.com/Rafiur/wallet_app/internal/domain/entity"
 	"github.com/Rafiur/wallet_app/internal/infrastructure/repository/schema"
 	"github.com/uptrace/bun"
@@ -34,6 +35,18 @@ func (repo *UserRepo) GetByID(ctx context.Context, id string) (*schema.User, err
 	err := repo.db.NewSelect().
 		Model(&data).
 		Where("id = ?", id).
+		Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &data, nil
+}
+
+func (repo *UserRepo) GetByEmail(ctx context.Context, email string) (*schema.User, error) {
+	var data schema.User
+	err := repo.db.NewSelect().
+		Model(&data).
+		Where("email = ?", email).
 		Scan(ctx)
 	if err != nil {
 		return nil, err
