@@ -34,6 +34,29 @@ wallet_app/
 - **Multi-Currency Support**: Handle different currencies
 - **Bank Integration**: Connect with financial institutions
 
+## Database Setup
+
+1. **Install PostgreSQL** and create a database:
+   ```sql
+   CREATE DATABASE wallet_db;
+   ```
+
+2. **Run the setup script**:
+   ```bash
+   cd backend
+   psql -U postgres -d wallet_db -f setup.sql
+   ```
+
+3. **Seed default admin user**:
+   ```bash
+   cd backend
+   go run seeder.go
+   ```
+
+   Default admin credentials:
+   - Email: `admin@walletapp.com`
+   - Password: `admin123`
+
 ## Quick Start
 
 1. **Clone the repository**
@@ -42,7 +65,9 @@ wallet_app/
    cd wallet_app
    ```
 
-2. **Run the application**
+2. **Set up database** (see Database Setup section above)
+
+3. **Run the application**
    ```bash
    # Double-click run.bat or run from command line
    ./run.bat
