@@ -17,11 +17,16 @@ func Route(e *echo.Echo, authenticate echo.MiddlewareFunc, mainHandler *handler.
 	})
 
 	// Auth routes (no auth required)
+	e.POST("/api/v1/register", mainHandler.CreateUser)
 	e.POST("/api/v1/login", mainHandler.Login)
 	e.POST("/api/v1/refresh", mainHandler.RefreshToken)
+	e.POST("/api/v1/logout", mainHandler.Logout)
 
 	api := e.Group("/api/v1")
 	api.Use(authenticate)
+
+	// Dashboard
+	api.GET("/dashboard", mainHandler.GetDashboardSummary)
 
 	// Accounts CRUD
 	api.POST("/accounts", mainHandler.CreateAccount)

@@ -37,6 +37,13 @@ func (svc *SessionService) GetByRefreshToken(ctx context.Context, refreshToken s
 	return svc.SessionRepoInterface.GetByRefreshToken(ctx, refreshToken)
 }
 
+func (svc *SessionService) Update(ctx context.Context, req *schema.Session) (*schema.Session, error) {
+	if req.ID == "" {
+		return nil, errors.New("id is required")
+	}
+	return svc.SessionRepoInterface.Update(ctx, req)
+}
+
 func (svc *SessionService) Delete(ctx context.Context, id string) error {
 	if id == "" {
 		return errors.New("id is required")

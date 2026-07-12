@@ -34,6 +34,21 @@ wallet_app/
 - **Multi-Currency Support**: Handle different currencies
 - **Bank Integration**: Connect with financial institutions
 
+## Quick Start (Docker)
+
+The whole stack (Postgres, backend, frontend) runs from a single root `docker-compose.yml`:
+
+```bash
+cp .env.example .env   # edit JWT_SECRET / DB_PASSWORD before any real deployment
+docker compose up --build
+# seed the default admin user (admin@walletapp.com / admin123)
+docker compose run --rm backend ./seeder
+```
+
+- Frontend: http://localhost:5173 (nginx serves the built app and proxies `/api/*` to the backend container)
+- Backend API: http://localhost:8000/api/v1
+- Postgres: localhost:5433
+
 ## Database Setup
 
 1. **Install PostgreSQL** and create a database:
@@ -50,7 +65,7 @@ wallet_app/
 3. **Seed default admin user**:
    ```bash
    cd backend
-   go run seeder.go
+   go run ./cmd/seeder
    ```
 
    Default admin credentials:
@@ -118,8 +133,10 @@ wallet_app/
 
 ### Authentication
 
+- `POST /api/v1/register` - User registration
 - `POST /api/v1/login` - User login
-- `POST /api/v1/refresh` - Refresh access token
+- `POST /api/v1/refresh` - Refresh access token (rotates the refresh token)
+- `POST /api/v1/logout` - Invalidate a refresh token
 
 ### Resources
 
@@ -140,7 +157,7 @@ All CRUD operations are available for the following resources under `/api/v1`:
 
 ### Authentication
 
-All API endpoints except login and refresh require JWT authentication. Include the access token in the Authorization header:
+All API endpoints except register, login, refresh, and logout require JWT authentication. Include the access token in the Authorization header:
 
 ```
 Authorization: Bearer <access_token>

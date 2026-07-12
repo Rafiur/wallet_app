@@ -9,6 +9,10 @@ import (
 
 type AccountRepoInterface interface {
 	GetTx(ctx context.Context) (*bun.Tx, error)
+	// WithTx returns a repo whose operations run against the given transaction
+	// instead of the default connection, so a caller can compose several writes
+	// (e.g. balance update + transaction insert) into one atomic unit.
+	WithTx(tx bun.IDB) AccountRepoInterface
 
 	Create(ctx context.Context, req *schema.Account) (*schema.Account, error)
 	GetByID(ctx context.Context, id string) (*schema.Account, error)

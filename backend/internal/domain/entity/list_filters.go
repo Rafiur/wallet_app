@@ -12,6 +12,8 @@ type FilterExpenseCategoryListRequest struct {
 	ID               string `json:"id"`
 	Name             string `json:"name"`
 	ParentCategoryID string `json:"parent_category_id"`
+	UserID           string `json:"user_id"` // returns this user's categories plus global ones (user_id IS NULL)
+	Type             string `json:"type"`
 }
 
 type FilterUserListRequest struct {

@@ -17,6 +17,16 @@ func NewAccountService(accountRepo repository.AccountRepoInterface) *AccountServ
 	return &AccountService{AccountRepo: accountRepo}
 }
 
+// ValidAccountTypes are the account types selectable in the UI.
+var ValidAccountTypes = map[string]bool{
+	"bank":           true,
+	"mobile_banking": true,
+	"cash":           true,
+	"wallet":         true,
+	"investment":     true,
+	"other":          true,
+}
+
 func (svc *AccountService) GetTx(ctx context.Context) (*bun.Tx, error) {
 	return svc.AccountRepo.GetTx(ctx)
 }
@@ -24,6 +34,9 @@ func (svc *AccountService) GetTx(ctx context.Context) (*bun.Tx, error) {
 func (svc *AccountService) Create(ctx context.Context, req *schema.Account) (*schema.Account, error) {
 	if req.UserID == "" || req.Name == "" || req.Type == "" || req.Currency == "" {
 		return nil, errors.New("user_id, name, type, and currency are required")
+	}
+	if !ValidAccountTypes[req.Type] {
+		return nil, errors.New("invalid account type")
 	}
 	return svc.AccountRepo.Create(ctx, req)
 }
@@ -42,6 +55,9 @@ func (svc *AccountService) List(ctx context.Context, filter *entity.FilterAccoun
 func (svc *AccountService) Update(ctx context.Context, req *schema.Account) (*schema.Account, error) {
 	if req.ID == "" {
 		return nil, errors.New("id is required")
+	}
+	if req.Type != "" && !ValidAccountTypes[req.Type] {
+		return nil, errors.New("invalid account type")
 	}
 	return svc.AccountRepo.Update(ctx, req)
 }

@@ -1,0 +1,74 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: wallet_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin1234}
+      POSTGRES_DB: wallet_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./backend/setup.sql:/docker-entrypoint-initdb.d/setup.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - wallet_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wallet_backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      HTTP_ADDRESS: "8000"
+      DBHOST: db
+      DBPORT: "5432"
+      DBUSER: postgres
+      DBPASS: ${DB_PASSWORD:-admin1234}
+      DBNAME: wallet_db
+      DBSCHEMA: public
+      DEBUG: "false"
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_ACCESS_TTL: 15m
+      JWT_REFRESH_TTL: 168h
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
+      RATE_LIMIT_WINDOW: 1m
+      RATE_LIMIT_MAX: 120
+      LOG_ENCODING: json
+      LOG_LEVEL: info
+    ports:
+      - "8000:8000"
+    networks:
+      - wallet_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE: /api/v1
+    container_name: wallet_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+    networks:
+      - wallet_net
+
+networks:
+  wallet_net:
+    name: wallet_net
+
+volumes:
+  db_data:

@@ -3,15 +3,16 @@ package repo_postgres
 import (
 	"context"
 	"github.com/Rafiur/wallet_app/internal/domain/entity"
+	"github.com/Rafiur/wallet_app/internal/infrastructure/repository"
 	"github.com/Rafiur/wallet_app/internal/infrastructure/repository/schema"
 	"github.com/uptrace/bun"
 )
 
 type TransferRepo struct {
-	db *bun.DB
+	db bun.IDB
 }
 
-func NewTransferRepo(db *bun.DB) *TransferRepo {
+func NewTransferRepo(db bun.IDB) *TransferRepo {
 	return &TransferRepo{db: db}
 }
 
@@ -21,6 +22,10 @@ func (repo *TransferRepo) GetTx(ctx context.Context) (*bun.Tx, error) {
 		return nil, err
 	}
 	return &tx, err
+}
+
+func (repo *TransferRepo) WithTx(tx bun.IDB) repository.TransferRepoInterface {
+	return &TransferRepo{db: tx}
 }
 
 func (repo *TransferRepo) Create(ctx context.Context, req *schema.Transfer) (*schema.Transfer, error) {

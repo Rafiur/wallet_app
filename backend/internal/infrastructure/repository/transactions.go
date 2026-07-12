@@ -9,6 +9,7 @@ import (
 
 type TransactionRepoInterface interface {
 	GetTx(ctx context.Context) (*bun.Tx, error)
+	WithTx(tx bun.IDB) TransactionRepoInterface
 	Create(ctx context.Context, req *schema.Transaction) (*schema.Transaction, error)
 	GetByID(ctx context.Context, id string) (*schema.Transaction, error)
 	List(ctx context.Context, filter *entity.FilterTransactionListRequest) ([]*schema.Transaction, error)

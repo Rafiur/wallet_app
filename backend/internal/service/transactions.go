@@ -34,8 +34,10 @@ func (svc *TransactionService) Create(ctx context.Context, req *schema.Transacti
 		return nil, err
 	}
 	defer tx.Rollback()
+	accountRepo := svc.AccountRepo.WithTx(tx)
+	transactionRepo := svc.TransactionRepo.WithTx(tx)
 
-	account, err := svc.AccountRepo.GetByID(ctx, req.AccountID)
+	account, err := accountRepo.GetByID(ctx, req.AccountID)
 	if err != nil {
 		return nil, err
 	}
@@ -43,11 +45,11 @@ func (svc *TransactionService) Create(ctx context.Context, req *schema.Transacti
 		return nil, errors.New("insufficient balance")
 	}
 	account.Balance += req.Amount
-	if _, err := svc.AccountRepo.Update(ctx, account); err != nil {
+	if _, err := accountRepo.Update(ctx, account); err != nil {
 		return nil, err
 	}
 
-	result, err := svc.TransactionRepo.Create(ctx, req)
+	result, err := transactionRepo.Create(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -78,23 +80,25 @@ func (svc *TransactionService) Update(ctx context.Context, req *schema.Transacti
 		return nil, err
 	}
 	defer tx.Rollback()
+	accountRepo := svc.AccountRepo.WithTx(tx)
+	transactionRepo := svc.TransactionRepo.WithTx(tx)
 
-	existing, err := svc.TransactionRepo.GetByID(ctx, req.ID)
+	existing, err := transactionRepo.GetByID(ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
 	if req.Amount != existing.Amount || req.AccountID != existing.AccountID {
 		// Revert old amount
-		oldAccount, err := svc.AccountRepo.GetByID(ctx, existing.AccountID)
+		oldAccount, err := accountRepo.GetByID(ctx, existing.AccountID)
 		if err != nil {
 			return nil, err
 		}
 		oldAccount.Balance -= existing.Amount
-		if _, err := svc.AccountRepo.Update(ctx, oldAccount); err != nil {
+		if _, err := accountRepo.Update(ctx, oldAccount); err != nil {
 			return nil, err
 		}
 		// Apply new amount
-		newAccount, err := svc.AccountRepo.GetByID(ctx, req.AccountID)
+		newAccount, err := accountRepo.GetByID(ctx, req.AccountID)
 		if err != nil {
 			return nil, err
 		}
@@ -102,11 +106,11 @@ func (svc *TransactionService) Update(ctx context.Context, req *schema.Transacti
 			return nil, errors.New("insufficient balance")
 		}
 		newAccount.Balance += req.Amount
-		if _, err := svc.AccountRepo.Update(ctx, newAccount); err != nil {
+		if _, err := accountRepo.Update(ctx, newAccount); err != nil {
 			return nil, err
 		}
 	}
-	result, err := svc.TransactionRepo.Update(ctx, req)
+	result, err := transactionRepo.Update(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -126,37 +130,39 @@ func (svc *TransactionService) Delete(ctx context.Context, req *entity.CommonDel
 		return err
 	}
 	defer tx.Rollback()
+	accountRepo := svc.AccountRepo.WithTx(tx)
+	transactionRepo := svc.TransactionRepo.WithTx(tx)
 
 	if req.ID != "" {
-		txData, err := svc.TransactionRepo.GetByID(ctx, req.ID)
+		txData, err := transactionRepo.GetByID(ctx, req.ID)
 		if err != nil {
 			return err
 		}
-		account, err := svc.AccountRepo.GetByID(ctx, txData.AccountID)
+		account, err := accountRepo.GetByID(ctx, txData.AccountID)
 		if err != nil {
 			return err
 		}
 		account.Balance -= txData.Amount
-		if _, err := svc.AccountRepo.Update(ctx, account); err != nil {
+		if _, err := accountRepo.Update(ctx, account); err != nil {
 			return err
 		}
 	} else {
-		txs, err := svc.TransactionRepo.List(ctx, &entity.FilterTransactionListRequest{IDs: req.IDs})
+		txs, err := transactionRepo.List(ctx, &entity.FilterTransactionListRequest{IDs: req.IDs})
 		if err != nil {
 			return err
 		}
 		for _, txData := range txs {
-			account, err := svc.AccountRepo.GetByID(ctx, txData.AccountID)
+			account, err := accountRepo.GetByID(ctx, txData.AccountID)
 			if err != nil {
 				return err
 			}
 			account.Balance -= txData.Amount
-			if _, err := svc.AccountRepo.Update(ctx, account); err != nil {
+			if _, err := accountRepo.Update(ctx, account); err != nil {
 				return err
 			}
 		}
 	}
-	if err := svc.TransactionRepo.Delete(ctx, req); err != nil {
+	if err := transactionRepo.Delete(ctx, req); err != nil {
 		return err
 	}
 	return tx.Commit()

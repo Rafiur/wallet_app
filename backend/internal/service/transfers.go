@@ -32,8 +32,10 @@ func (svc *TransferService) Create(ctx context.Context, req *schema.Transfer) (*
 		return nil, err
 	}
 	defer tx.Rollback()
+	accountRepo := svc.AccountRepo.WithTx(tx)
+	transferRepo := svc.TransferRepo.WithTx(tx)
 
-	fromAccount, err := svc.AccountRepo.GetByID(ctx, req.FromAccountID)
+	fromAccount, err := accountRepo.GetByID(ctx, req.FromAccountID)
 	if err != nil {
 		return nil, err
 	}
@@ -41,11 +43,11 @@ func (svc *TransferService) Create(ctx context.Context, req *schema.Transfer) (*
 		return nil, errors.New("insufficient balance in from_account")
 	}
 	fromAccount.Balance -= req.Amount
-	if _, err := svc.AccountRepo.Update(ctx, fromAccount); err != nil {
+	if _, err := accountRepo.Update(ctx, fromAccount); err != nil {
 		return nil, err
 	}
 
-	toAccount, err := svc.AccountRepo.GetByID(ctx, req.ToAccountID)
+	toAccount, err := accountRepo.GetByID(ctx, req.ToAccountID)
 	if err != nil {
 		return nil, err
 	}
@@ -54,12 +56,12 @@ func (svc *TransferService) Create(ctx context.Context, req *schema.Transfer) (*
 	} else {
 		toAccount.Balance += req.Amount
 	}
-	if _, err := svc.AccountRepo.Update(ctx, toAccount); err != nil {
+	if _, err := accountRepo.Update(ctx, toAccount); err != nil {
 		return nil, err
 	}
 
 	req.Status = "completed"
-	result, err := svc.TransferRepo.Create(ctx, req)
+	result, err := transferRepo.Create(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -89,22 +91,24 @@ func (svc *TransferService) Update(ctx context.Context, req *schema.Transfer) (*
 		return nil, err
 	}
 	defer tx.Rollback()
+	accountRepo := svc.AccountRepo.WithTx(tx)
+	transferRepo := svc.TransferRepo.WithTx(tx)
 
-	existing, err := svc.TransferRepo.GetByID(ctx, req.ID)
+	existing, err := transferRepo.GetByID(ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
 	if req.Amount != existing.Amount || req.FromAccountID != existing.FromAccountID || req.ToAccountID != existing.ToAccountID {
 		// Revert old transfer
-		fromAccount, err := svc.AccountRepo.GetByID(ctx, existing.FromAccountID)
+		fromAccount, err := accountRepo.GetByID(ctx, existing.FromAccountID)
 		if err != nil {
 			return nil, err
 		}
 		fromAccount.Balance += existing.Amount
-		if _, err := svc.AccountRepo.Update(ctx, fromAccount); err != nil {
+		if _, err := accountRepo.Update(ctx, fromAccount); err != nil {
 			return nil, err
 		}
-		toAccount, err := svc.AccountRepo.GetByID(ctx, existing.ToAccountID)
+		toAccount, err := accountRepo.GetByID(ctx, existing.ToAccountID)
 		if err != nil {
 			return nil, err
 		}
@@ -113,11 +117,11 @@ func (svc *TransferService) Update(ctx context.Context, req *schema.Transfer) (*
 		} else {
 			toAccount.Balance -= existing.Amount
 		}
-		if _, err := svc.AccountRepo.Update(ctx, toAccount); err != nil {
+		if _, err := accountRepo.Update(ctx, toAccount); err != nil {
 			return nil, err
 		}
 		// Apply new transfer
-		newFromAccount, err := svc.AccountRepo.GetByID(ctx, req.FromAccountID)
+		newFromAccount, err := accountRepo.GetByID(ctx, req.FromAccountID)
 		if err != nil {
 			return nil, err
 		}
@@ -125,10 +129,10 @@ func (svc *TransferService) Update(ctx context.Context, req *schema.Transfer) (*
 			return nil, errors.New("insufficient balance in from_account")
 		}
 		newFromAccount.Balance -= req.Amount
-		if _, err := svc.AccountRepo.Update(ctx, newFromAccount); err != nil {
+		if _, err := accountRepo.Update(ctx, newFromAccount); err != nil {
 			return nil, err
 		}
-		newToAccount, err := svc.AccountRepo.GetByID(ctx, req.ToAccountID)
+		newToAccount, err := accountRepo.GetByID(ctx, req.ToAccountID)
 		if err != nil {
 			return nil, err
 		}
@@ -137,11 +141,11 @@ func (svc *TransferService) Update(ctx context.Context, req *schema.Transfer) (*
 		} else {
 			newToAccount.Balance += req.Amount
 		}
-		if _, err := svc.AccountRepo.Update(ctx, newToAccount); err != nil {
+		if _, err := accountRepo.Update(ctx, newToAccount); err != nil {
 			return nil, err
 		}
 	}
-	result, err := svc.TransferRepo.Update(ctx, req)
+	result, err := transferRepo.Update(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -160,21 +164,23 @@ func (svc *TransferService) Delete(ctx context.Context, req *entity.CommonDelete
 		return err
 	}
 	defer tx.Rollback()
+	accountRepo := svc.AccountRepo.WithTx(tx)
+	transferRepo := svc.TransferRepo.WithTx(tx)
 
 	if req.ID != "" {
-		transfer, err := svc.TransferRepo.GetByID(ctx, req.ID)
+		transfer, err := transferRepo.GetByID(ctx, req.ID)
 		if err != nil {
 			return err
 		}
-		fromAccount, err := svc.AccountRepo.GetByID(ctx, transfer.FromAccountID)
+		fromAccount, err := accountRepo.GetByID(ctx, transfer.FromAccountID)
 		if err != nil {
 			return err
 		}
 		fromAccount.Balance += transfer.Amount
-		if _, err := svc.AccountRepo.Update(ctx, fromAccount); err != nil {
+		if _, err := accountRepo.Update(ctx, fromAccount); err != nil {
 			return err
 		}
-		toAccount, err := svc.AccountRepo.GetByID(ctx, transfer.ToAccountID)
+		toAccount, err := accountRepo.GetByID(ctx, transfer.ToAccountID)
 		if err != nil {
 			return err
 		}
@@ -183,24 +189,24 @@ func (svc *TransferService) Delete(ctx context.Context, req *entity.CommonDelete
 		} else {
 			toAccount.Balance -= transfer.Amount
 		}
-		if _, err := svc.AccountRepo.Update(ctx, toAccount); err != nil {
+		if _, err := accountRepo.Update(ctx, toAccount); err != nil {
 			return err
 		}
 	} else {
-		transfers, err := svc.TransferRepo.List(ctx, &entity.FilterTransferListRequest{IDs: req.IDs})
+		transfers, err := transferRepo.List(ctx, &entity.FilterTransferListRequest{IDs: req.IDs})
 		if err != nil {
 			return err
 		}
 		for _, transfer := range transfers {
-			fromAccount, err := svc.AccountRepo.GetByID(ctx, transfer.FromAccountID)
+			fromAccount, err := accountRepo.GetByID(ctx, transfer.FromAccountID)
 			if err != nil {
 				return err
 			}
 			fromAccount.Balance += transfer.Amount
-			if _, err := svc.AccountRepo.Update(ctx, fromAccount); err != nil {
+			if _, err := accountRepo.Update(ctx, fromAccount); err != nil {
 				return err
 			}
-			toAccount, err := svc.AccountRepo.GetByID(ctx, transfer.ToAccountID)
+			toAccount, err := accountRepo.GetByID(ctx, transfer.ToAccountID)
 			if err != nil {
 				return err
 			}
@@ -209,12 +215,12 @@ func (svc *TransferService) Delete(ctx context.Context, req *entity.CommonDelete
 			} else {
 				toAccount.Balance -= transfer.Amount
 			}
-			if _, err := svc.AccountRepo.Update(ctx, toAccount); err != nil {
+			if _, err := accountRepo.Update(ctx, toAccount); err != nil {
 				return err
 			}
 		}
 	}
-	if err := svc.TransferRepo.Delete(ctx, req); err != nil {
+	if err := transferRepo.Delete(ctx, req); err != nil {
 		return err
 	}
 	return tx.Commit()

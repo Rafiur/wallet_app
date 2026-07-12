@@ -53,6 +53,12 @@ func (repo *ExpenseCategoryRepo) List(ctx context.Context, filter *entity.Filter
 	if filter.ParentCategoryID != "" {
 		query = query.Where("parent_category_id = ?", filter.ParentCategoryID)
 	}
+	if filter.UserID != "" {
+		query = query.Where("user_id IS NULL OR user_id = ?", filter.UserID)
+	}
+	if filter.Type != "" {
+		query = query.Where("type = ?", filter.Type)
+	}
 
 	err := query.
 		Scan(ctx)

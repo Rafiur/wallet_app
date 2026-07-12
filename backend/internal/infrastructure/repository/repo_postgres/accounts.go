@@ -4,16 +4,17 @@ import (
 	"context"
 	"fmt"
 	"github.com/Rafiur/wallet_app/internal/domain/entity"
+	"github.com/Rafiur/wallet_app/internal/infrastructure/repository"
 	"github.com/Rafiur/wallet_app/internal/infrastructure/repository/schema"
 	"github.com/uptrace/bun"
 	"time"
 )
 
 type AccountRepo struct {
-	db *bun.DB
+	db bun.IDB
 }
 
-func NewAccountRepo(db *bun.DB) *AccountRepo {
+func NewAccountRepo(db bun.IDB) *AccountRepo {
 	return &AccountRepo{db: db}
 }
 
@@ -23,6 +24,10 @@ func (repo *AccountRepo) GetTx(ctx context.Context) (*bun.Tx, error) {
 		return nil, err
 	}
 	return &tx, err
+}
+
+func (repo *AccountRepo) WithTx(tx bun.IDB) repository.AccountRepoInterface {
+	return &AccountRepo{db: tx}
 }
 
 func (repo *AccountRepo) Create(ctx context.Context, req *schema.Account) (*schema.Account, error) {
@@ -82,6 +87,9 @@ func (repo *AccountRepo) Update(ctx context.Context, req *schema.Account) (*sche
 
 	if req.Name != "" && req.Name != existing.Name {
 		existing.Name = req.Name
+	}
+	if req.Type != "" && req.Type != existing.Type {
+		existing.Type = req.Type
 	}
 	if req.Balance != existing.Balance {
 		existing.Balance = req.Balance

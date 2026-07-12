@@ -1,55 +1,23 @@
 package config
 
 import (
-	//"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
-
-//type Config struct {
-//	Database `mapstructure:",squash"`
-//	Logger   `mapstructure:",squash"`
-//}
-//
-//func NewConfig(configFile string) *Config {
-//	var config Config
-//	if err := godotenv.Load(configFile); err != nil {
-//		log.Printf("Error loading .env file: %v", err)
-//	}
-//	if err := cleanenv.ReadEnv(&config); err != nil {
-//		log.Fatalf("Error reading environment variables: %v", err)
-//	}
-//
-//	return &config
-//}
-
-//type Database struct {
-//	DBHost   string `env:"DBHOST"`
-//	DbUser   string `env:"DBUSER"`
-//	DbPass   string `env:"DBPASS"`
-//	DbPort   string `env:"DBPORT"`
-//	DbName   string `env:"DBNAME"`
-//	DbSchema string `env:"DBSCHEMA"`
-//
-//	Debug bool `env:"DEBUG" env-default:"false"`
-//}
-//
-//type Logger struct {
-//	Development       bool
-//	DisableCaller     bool
-//	DisableStacktrace bool
-//	Encoding          string
-//	Level             string
-//}
 
 type Config struct {
 	ServerPort    string
 	JwtSecret     string
 	JwtAccessTTL  time.Duration
 	JwtRefreshTTL time.Duration
+
+	CorsOrigins     []string
+	RateLimitWindow time.Duration
+	RateLimitMax    int
 
 	DBHost   string
 	DBUser   string
@@ -75,6 +43,13 @@ func Init() {
 
 	jwtAccessTTL, _ := time.ParseDuration(getEnv("JWT_ACCESS_TTL", "15m"))
 	jwtRefreshTTL, _ := time.ParseDuration(getEnv("JWT_REFRESH_TTL", "168h"))
+	rateLimitWindow, _ := time.ParseDuration(getEnv("RATE_LIMIT_WINDOW", "1m"))
+	rateLimitMax, _ := strconv.Atoi(getEnv("RATE_LIMIT_MAX", "120"))
+
+	corsOrigins := strings.Split(getEnv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000"), ",")
+	for i := range corsOrigins {
+		corsOrigins[i] = strings.TrimSpace(corsOrigins[i])
+	}
 
 	debug, _ := strconv.ParseBool(getEnv("DEBUG", "false"))
 
@@ -83,6 +58,10 @@ func Init() {
 		JwtSecret:     getEnv("JWT_SECRET", "super-secret-jwt-key-change-me"), // ADD THIS TO config.env !!
 		JwtAccessTTL:  jwtAccessTTL,
 		JwtRefreshTTL: jwtRefreshTTL,
+
+		CorsOrigins:     corsOrigins,
+		RateLimitWindow: rateLimitWindow,
+		RateLimitMax:    rateLimitMax,
 
 		DBHost:   getEnv("DBHOST", "localhost"),
 		DBUser:   getEnv("DBUSER", "postgres"),

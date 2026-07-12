@@ -9,6 +9,7 @@ type SessionRepoInterface interface {
 	Create(ctx context.Context, req *schema.Session) (*schema.Session, error)
 	GetByID(ctx context.Context, id string) (*schema.Session, error)
 	GetByRefreshToken(ctx context.Context, refreshToken string) (*schema.Session, error)
+	Update(ctx context.Context, req *schema.Session) (*schema.Session, error)
 	Delete(ctx context.Context, id string) error
 	DeleteByUserID(ctx context.Context, userID string) error
 }

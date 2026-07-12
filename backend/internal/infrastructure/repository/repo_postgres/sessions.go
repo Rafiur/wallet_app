@@ -65,26 +65,25 @@ func (repo *SessionRepo) DeleteByUserID(ctx context.Context, userID string) erro
 	return err
 }
 
-// Optionally update expiration date or token
-//func (repo *SessionRepo) Update(ctx context.Context, req *schema.Session) (*schema.Session, error) {
-//	existing, err := repo.GetByID(ctx, req.ID)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	if req.RefreshToken != "" && req.RefreshToken != existing.RefreshToken {
-//		existing.RefreshToken = req.RefreshToken
-//	}
-//	if !req.ExpiresAt.IsZero() {
-//		existing.ExpiresAt = req.ExpiresAt
-//	}
-//
-//	_, err = repo.db.NewUpdate().
-//		Model(existing).
-//		Where("id = ?", req.ID).
-//		Exec(ctx)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return existing, nil
-//}
+func (repo *SessionRepo) Update(ctx context.Context, req *schema.Session) (*schema.Session, error) {
+	existing, err := repo.GetByID(ctx, req.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.RefreshToken != "" {
+		existing.RefreshToken = req.RefreshToken
+	}
+	if !req.ExpiresAt.IsZero() {
+		existing.ExpiresAt = req.ExpiresAt
+	}
+
+	_, err = repo.db.NewUpdate().
+		Model(existing).
+		Where("id = ?", req.ID).
+		Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return existing, nil
+}

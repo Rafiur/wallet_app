@@ -16,12 +16,8 @@ import (
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"golang.org/x/time/rate"
 )
-
-type JwtClaim struct {
-	UserID string `json:"user_id"`
-	jwt.RegisteredClaims
-}
 
 func main() {
 	// Initialize configuration
@@ -73,7 +69,7 @@ func main() {
 	userService := service.NewUserService(userRepo, passwordService)
 
 	// Initialize security services
-	jwtService := security.NewJWTService(dynamicConfig.JwtSecret)
+	jwtService := security.NewJWTService(dynamicConfig.JwtSecret, dynamicConfig.JwtAccessTTL, dynamicConfig.JwtRefreshTTL)
 
 	// Initialize handler
 	mainHandler := handler.NewHandler(
@@ -95,23 +91,31 @@ func main() {
 	)
 	// Initialize Echo
 	e := echo.New()
+	requestsPerSecond := rate.Limit(float64(dynamicConfig.RateLimitMax) / dynamicConfig.RateLimitWindow.Seconds())
+	rateLimiterStore := middleware.NewRateLimiterMemoryStoreWithConfig(middleware.RateLimiterMemoryStoreConfig{
+		Rate:      requestsPerSecond,
+		Burst:     dynamicConfig.RateLimitMax,
+		ExpiresIn: dynamicConfig.RateLimitWindow,
+	})
+
 	e.Use(
 		middleware.Gzip(),
 		middleware.Recover(),
 		middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins:     []string{"http://localhost:3000", "https://your-frontend.com"},
+			AllowOrigins:     dynamicConfig.CorsOrigins,
 			AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
 			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 			AllowCredentials: true,
 			MaxAge:           86400,
 		}),
 		middleware.Logger(),
+		middleware.RateLimiter(rateLimiterStore),
 	)
 
 	// JWT middleware
 	jwtConfig := echojwt.Config{
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
-			return new(JwtClaim)
+			return new(security.JwtClaim)
 		},
 		SigningKey: []byte(dynamicConfig.JwtSecret),
 		//ErrorHandler: middlewares.JwtErrorHandler,

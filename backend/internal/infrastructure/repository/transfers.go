@@ -9,6 +9,7 @@ import (
 
 type TransferRepoInterface interface {
 	GetTx(ctx context.Context) (*bun.Tx, error)
+	WithTx(tx bun.IDB) TransferRepoInterface
 	Create(ctx context.Context, req *schema.Transfer) (*schema.Transfer, error)
 	GetByID(ctx context.Context, id string) (*schema.Transfer, error)
 	List(ctx context.Context, filter *entity.FilterTransferListRequest) ([]*schema.Transfer, error)

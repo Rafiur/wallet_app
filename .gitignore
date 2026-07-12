@@ -1,0 +1,19 @@
+# Secrets
+.env
+
+# Go
+/backend/wallet_app
+/backend/seeder
+/backend/tmp/
+
+# Node
+node_modules/
+frontend/dist/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

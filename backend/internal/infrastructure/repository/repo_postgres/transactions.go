@@ -5,15 +5,16 @@ import (
 	"github.com/Rafiur/wallet_app/utils"
 
 	"github.com/Rafiur/wallet_app/internal/domain/entity"
+	"github.com/Rafiur/wallet_app/internal/infrastructure/repository"
 	"github.com/Rafiur/wallet_app/internal/infrastructure/repository/schema"
 	"github.com/uptrace/bun"
 )
 
 type TransactionRepo struct {
-	db *bun.DB
+	db bun.IDB
 }
 
-func NewTransactionRepo(db *bun.DB) *TransactionRepo {
+func NewTransactionRepo(db bun.IDB) *TransactionRepo {
 	return &TransactionRepo{db: db}
 }
 
@@ -23,6 +24,10 @@ func (repo *TransactionRepo) GetTx(ctx context.Context) (*bun.Tx, error) {
 		return nil, err
 	}
 	return &tx, err
+}
+
+func (repo *TransactionRepo) WithTx(tx bun.IDB) repository.TransactionRepoInterface {
+	return &TransactionRepo{db: tx}
 }
 
 func (repo *TransactionRepo) Create(ctx context.Context, req *schema.Transaction) (*schema.Transaction, error) {
