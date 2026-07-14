@@ -53,6 +53,13 @@ func (svc *UserService) Update(ctx context.Context, req *schema.User) (*schema.U
 	if req.ID == "" {
 		return nil, errors.New("id is required")
 	}
+	if req.Password != "" {
+		hashedPassword, err := svc.PasswordService.HashPassword(req.Password)
+		if err != nil {
+			return nil, err
+		}
+		req.Password = hashedPassword
+	}
 	return svc.UserRepoInterface.Update(ctx, req)
 }
 

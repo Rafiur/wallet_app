@@ -162,13 +162,21 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	if id != authUserID(c) {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "user not found"})
 	}
-	var req schema.User
+	// schema.User.Password is tagged json:"-" (so password hashes never leak in
+	// responses), which also means it can't be bound directly from the request body.
+	var req struct {
+		FullName string `json:"full_name"`
+		Password string `json:"password"`
+	}
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
-	req.ID = id
 	ctx := c.Request().Context()
-	updated, err := h.userService.Update(ctx, &req)
+	updated, err := h.userService.Update(ctx, &schema.User{
+		ID:       id,
+		FullName: req.FullName,
+		Password: req.Password,
+	})
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}

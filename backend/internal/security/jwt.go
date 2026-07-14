@@ -1,10 +1,21 @@
 package security
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
+
+// newJTI returns a random token identifier so two tokens issued for the same
+// user within the same second (e.g. rapid double-login) never collide -
+// JWTs are otherwise deterministic given identical claims and secret.
+func newJTI() string {
+	buf := make([]byte, 16)
+	_, _ = rand.Read(buf)
+	return hex.EncodeToString(buf)
+}
 
 type JwtClaim struct {
 	UserID string `json:"user_id"`
@@ -32,6 +43,7 @@ func (s *JWTService) GenerateAccessToken(userID string) (string, error) {
 		"user_id": userID,
 		"exp":     time.Now().Add(s.accessTTL).Unix(),
 		"iat":     time.Now().Unix(),
+		"jti":     newJTI(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(s.secretKey))
@@ -46,6 +58,7 @@ func (s *JWTService) GenerateRefreshToken(userID string) (string, error) {
 		"user_id": userID,
 		"exp":     time.Now().Add(s.refreshTTL).Unix(),
 		"iat":     time.Now().Unix(),
+		"jti":     newJTI(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(s.secretKey))

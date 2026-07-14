@@ -80,9 +80,13 @@ func (repo *UserRepo) Update(ctx context.Context, req *schema.User) (*schema.Use
 	if req.FullName != "" {
 		existing.FullName = req.FullName
 	}
+	if req.Password != "" {
+		existing.Password = req.Password
+	}
 
 	_, err = repo.db.NewUpdate().
 		Model(existing).
+		Where("id = ?", req.ID).
 		Exec(ctx)
 
 	if err != nil {
